@@ -3,8 +3,8 @@ version: '3.3'
 services:
 
   generator:
-    image: registry.labbs.com.br/barimetrics/metrics-generator-tabajara
     build: .
+    image: abilioesteves/metrics-generator-tabajara
     environment:
       - COMPONENT_NAME=testserver
       - COMPONENT_VERSION=1.0.0
@@ -14,49 +14,49 @@ services:
     ports:
       - 3000:3000
 
-  grafana:
-    image: flaviostutz/grafana
-    ports:
-      - 4000:3000
-    volumes:
-      - grafana:/data
+  # grafana:
+  #   image: flaviostutz/grafana
+  #   ports:
+  #     - 4000:3000
+  #   volumes:
+  #     - grafana:/data
 
-  prometheus:
-    image: flaviostutz/prometheus
-    ports:
-      - 9090:9090
-    environment:
-      - STATIC_SCRAPE_TARGETS=generator@generator:3000
-    volumes:
-      - prometheus:/prometheus
+  # prometheus:
+  #   image: flaviostutz/prometheus
+  #   ports:
+  #     - 9090:9090
+  #   environment:
+  #     - STATIC_SCRAPE_TARGETS=generator@generator:3000
+  #   volumes:
+  #     - prometheus:/prometheus
 
-  alertmanager:
-    image: flaviostutz/alertmanager-webhook
-    ports:
-      - 9093:9093
-    environment:
-      - WEBHOOK_URL=http://telegrambot:8080
-    volumes:
-      - alertmanager:/alertmanager
+  # alertmanager:
+  #   image: flaviostutz/alertmanager-webhook
+  #   ports:
+  #     - 9093:9093
+  #   environment:
+  #     - WEBHOOK_URL=http://telegrambot:8080
+  #   volumes:
+  #     - alertmanager:/alertmanager
 
-  telegrambot:
-    image: metalmatze/alertmanager-bot:0.3.1
-    environment:
-      - ALERTMANAGER_URL=http://alertmanager:9093
-      - BOLT_PATH=/data/bot.db
-      - STORE=bolt
-      - LISTEN_ADDR=0.0.0.0:8080
-      - TELEGRAM_ADMIN=123
-      - TELEGRAM_TOKEN=123:XXXXX
-    volumes:
-      - telegrambot:/data
+  # telegrambot:
+  #   image: metalmatze/alertmanager-bot:0.3.1
+  #   environment:
+  #     - ALERTMANAGER_URL=http://alertmanager:9093
+  #     - BOLT_PATH=/data/bot.db
+  #     - STORE=bolt
+  #     - LISTEN_ADDR=0.0.0.0:8080
+  #     - TELEGRAM_ADMIN=123
+  #     - TELEGRAM_TOKEN=123:XXXXX
+  #   volumes:
+  #     - telegrambot:/data
 
-  unsee:
-    image: cloudflare/unsee:v0.8.0
-    ports:
-      - 8080:8080
-    environment:
-      - ALERTMANAGER_URIS=default:http://alertmanager:9093
+  # unsee:
+  #   image: cloudflare/unsee:v0.8.0
+  #   ports:
+  #     - 8080:8080
+  #   environment:
+  #     - ALERTMANAGER_URIS=default:http://alertmanager:9093
 
 volumes:
   grafana:

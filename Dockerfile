@@ -1,16 +1,22 @@
-FROM golang:1.10 AS BUILD
+FROM golang:1.11-alpine AS BUILD
 
-#doing dependency build separated from source build optimizes time for developer, but is not required
-#install external dependencies first
-ADD /main.go $GOPATH/src/metrics-generator-tabajara/main.go
-RUN go get -v metrics-generator-tabajara
+RUN apk add --no-cache gcc build-base git mercurial 
 
-#now build source code
-ADD metrics-generator-tabajara $GOPATH/src/metrics-generator-tabajara
-RUN go get -v metrics-generator-tabajara
+ENV BUILD_PATH=$GOPATH/src/github.com/abilioesteves/metrics-generator-tabajara/
 
+RUN mkdir -p ${BUILD_PATH}
 
-FROM golang:1.10 AS IMAGE
+WORKDIR ${BUILD_PATH}
+
+ADD ./src ./
+
+RUN go get -v ./...
+
+WORKDIR ${BUILD_PATH}/cmd
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o /metrics-generator-tabajara .
+
+FROM scratch
 
 EXPOSE 3000
 
@@ -21,7 +27,7 @@ ENV ACCIDENT_RESOURCE ''
 ENV ACCIDENT_TYPE ''
 ENV ACCIDENT_RATIO 1
 
-COPY --from=BUILD /go/bin/* /bin/
+COPY --from=BUILD /metrics-generator-tabajara /
 ADD startup.sh /
 
 CMD [ "/startup.sh" ]
