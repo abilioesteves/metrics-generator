@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/abilioesteves/goh/gohserver"
@@ -35,10 +34,10 @@ func Init(generator generator.Generator) *DefaultHook {
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/accidents/{resourceName}", hook.DeleteAccident).Methods("DELETE")
-	router.HandleFunc("/accidents/{resourceName}", hook.CreateAccident).Methods("POST")
-	router.HandleFunc("/entropy/increase/{n}", hook.CreateAccident).Methods("POST")
-	router.HandleFunc("/entropy/decrease/{n}", hook.DecreaseEntropy).Methods("POST")
+	router.HandleFunc("/accidents/{accidentType}/{resourceName}", hook.DeleteAccident).Methods("DELETE")
+	router.HandleFunc("/accidents", hook.DeleteAccidents).Methods("DELETE")
+	router.HandleFunc("/accidents", hook.CreateAccident).Methods("POST")
+	router.HandleFunc("/entropy/set", hook.CreateAccident).Methods("POST")
 
 	logrus.Info("Initialized Metrics Generator Tabajara Webhook")
 	err := http.ListenAndServe("0.0.0.0:32865", router)
@@ -69,41 +68,38 @@ func (hook *DefaultHook) DeleteAccident(w http.ResponseWriter, r *http.Request) 
 
 	vars := mux.Vars(r)
 	resourceName := vars["resourceName"]
-	if strings.Trim(resourceName, " ") != "" {
-		err := hook.Generator.DeleteAccident(vars["resourceName"])
-
-		types.PanicIfError(types.Error{Message: fmt.Sprintf("Not possible to delete the accident '%s'", vars["resourceName"]), Code: 500, Err: err})
+	accidentType := vars["accidentType"]
+	if strings.Trim(resourceName, " ") != "" && strings.Trim(accidentType, " ") != "" {
+		err := hook.Generator.DeleteAccident(accidentType, resourceName)
+		gohtypes.PanicIfError(fmt.Sprintf("Not possible to delete the accident '%s'", vars["resourceName"], 500, err)
 
 		gohserver.WriteJSONResponse(true, 200, w)
 	}
 
-	gohtypes.Panic("No resource name given.", 406)
+	gohtypes.Panic("Accident type and resource name must be provided in order to identify the accident", 406)
 }
 
-// IncreaseEntropy increases the number of returned time-series
-func (hook *DefaultHook) IncreaseEntropy(w http.ResponseWriter, r *http.Request) {
-	hook.increaseOrDecreaseEntropy(w, r, hook.Generator.IncreaseEntropy)
-}
-
-// DecreaseEntropy descreaes the number of returned time-series
-func (hook *DefaultHook) DecreaseEntropy(w http.ResponseWriter, r *http.Request) {
-	hook.increaseOrDecreaseEntropy(w, r, hook.Generator.DecreaseEntropy)
-}
-
-func (hook *DefaultHook) increaseOrDecreaseEntropy(w http.ResponseWriter, r *http.Request, do func(n int) error) {
+// DeleteAccidents deletes all observation accidents
+func (hook *DefaultHook) DeleteAccidents(w http.ResponseWriter, r *http.Request) {
 	defer gohserver.HandleError(w)
 
-	vars := mux.Vars(r)
-	nstr := vars["n"]
-	if strings.Trim(nstr, " ") != "" {
-		n, err := strconv.Atoi(nstr)
-		gohtypes.PanicIfError("The parameter n is not a valid number", 406, err)
+	err := hook.Generator.DeleteAccidents()
+	gohtypes.PanicIfError(fmt.Sprintf("Not possible to remove all accidents"), 500, err)
 
-		err = do(n)
-		gohtypes.PanicIfError("Not possible to adjust the entropy of generated metrics", 500, err)
+	gohserver.WriteJSONResponse(true, 200, w)
+}
 
-		gohserver.WriteJSONResponse(true, 200, w)
-	}
+// SetEntropy increases the number of returned time-series
+func (hook *DefaultHook) SetEntropy(w http.ResponseWriter, r *http.Request) {
+	defer gohserver.HandleError(w)
 
-	gohtypes.Panic("No number of time-series to adjust provided", 406)
+	var entropy generator.Entropy
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&entropy)
+	gohtypes.PanicIfError("Unable to decode the payload", 406, err)
+
+	err = hook.Generator.SetEntropy(entropy)
+	gohtypes.PanicIfError("Not possible to adjust the entropy of generated metrics", 500, err)
+
+	gohserver.WriteJSONResponse(true, 200, w)
 }

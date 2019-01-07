@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	g := generator.New(metrics.Init())
-	go g.Init()
-	go hook.Init(g)
-	select {}
+	g := generator.NewGeneratorTabajara(metrics.Init(), generator.GetDefaultEntropy())
+	go g.Init()     // fire metrics generator
+	go hook.Init(g) // fire webhook
+	select {}       // keep-alive magic
 }

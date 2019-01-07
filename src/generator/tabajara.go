@@ -1,43 +1,80 @@
 package generator
 
 import (
+	"sync"
+
+	"github.com/abilioesteves/metrics-generator-tabajara/src/generator/accidenttypes"
 	"github.com/abilioesteves/metrics-generator-tabajara/src/metrics"
 	"github.com/sirupsen/logrus"
 )
 
-// Generator defines the methods a Generator should implement
-type Generator interface {
-	CreateAccident(accident Accident) (err error)
-	DeleteAccident(resourceName string) (err error)
-	IncreaseEntropy(n int) (err error)
-	DecreaseEntropy(n int) (err error)
-}
-
 // Tabajara generates metrics
 type Tabajara struct {
 	Collector *metrics.Collector
+	Entropy   Entropy
+	Accidents map[string]Accident
+	l         sync.Mutex
 }
 
-// Accident accident
-type Accident struct {
-	ResourceName string `json:"resourcename,omitempty"`
-	Type         string `json:"type,omitempty"`
-	Value        string `json:"value,omitempty"`
-}
-
-// New instantiates a new
-func New(collector *metrics.Collector) *Tabajara {
+// NewGeneratorTabajara instantiates a new
+func NewGeneratorTabajara(collector *metrics.Collector, entropy Entropy) *Tabajara {
 	return &Tabajara{
 		Collector: collector,
+		Entropy:   entropy,
 	}
 }
 
 // Init initializes the generation of the dummy metrics
 func (gen *Tabajara) Init() {
 	logrus.Infof("Starting requests simulation to generate metrics...")
-	// var statuses = []string{"4xx", "2xx", "5xx"}
-	// var methods = []string{"POST", "GET", "DELETE", "PUT"}
+	for {
+		statuses := []string{"4xx", "2xx", "5xx"}
+		methods := []string{"POST", "GET", "DELETE", "PUT"}
+		oss := []string{"ios", "android"}
 
+		func() {
+			gen.l.Lock()
+			defer gen.l.Unlock()
+
+			uri := getRandomElemNormal(gen.getUris())
+			serviceVersion := getRandomElemNormal(gen.getServiceVersions())
+
+			calls := int(gen.getValueAccident(accidenttypes.Calls, 1.0, uri))
+
+			for i := 0; i < calls; i++ {
+				appVersion := getRandomElemNormal(gen.getAppVersions())
+				device := getRandomElemNormal(gen.getDevices())
+				os := getRandomElemNormal(oss)
+				method := methods[randomInt(int64(hash(uri)), len(methods))]
+				status := getRandomElemNormal(statuses)
+
+				gen.Collector.HTTPRequestsPerServiceVersion.WithLabelValues(
+					uri,
+					method,
+					status,
+					serviceVersion,
+				).Observe(gen.getValueAccident(accidenttypes.Latency, 0.3, uri)) // TODO get random duration around 0.3 median
+
+				gen.Collector.HTTPRequestsPerAppVersion.WithLabelValues(
+					uri,
+					method,
+					status,
+					appVersion,
+				).Inc()
+
+				gen.Collector.HTTPRequestsPerDevice.WithLabelValues(
+					uri,
+					method,
+					status,
+					os+device,
+				).Inc()
+			}
+
+			gen.Collector.HTTPPendingRequests.WithLabelValues(
+				serviceVersion,
+			).Set(float64(randomRangeNormal(0, 400)))
+		}()
+	}
 }
 
 // CreateAccident creates observation accidents to an specific resource
@@ -50,12 +87,35 @@ func (gen *Tabajara) DeleteAccident(resourceName string) (err error) {
 	return
 }
 
-// IncreaseEntropy increases the number of returned time-series by n
-func (gen *Tabajara) IncreaseEntropy(n int) (err error) {
+// DeleteAccidents deletes all accidents
+func (gen *Tabajara) DeleteAccidents() (err error) {
 	return
 }
 
-// DecreaseEntropy descreases the number of returned time-series by n
-func (gen *Tabajara) DecreaseEntropy(n int) (err error) {
+// SetEntropy increases the number of returned time-series by n
+func (gen *Tabajara) SetEntropy(e Entropy) (err error) {
 	return
+}
+
+func (gen *Tabajara) getUris() []string {
+	return generateItems("/resource/test-", gen.Entropy.URICount)
+}
+
+func (gen *Tabajara) getServiceVersions() []string {
+	return generateItems("backend-v", gen.Entropy.ServiceVersionCount)
+}
+
+func (gen *Tabajara) getAppVersions() []string {
+	return generateItems("v", gen.Entropy.AppVersionCount)
+}
+
+func (gen *Tabajara) getDevices() []string {
+	return generateItems("-", gen.Entropy.DeviceCount)
+}
+
+func (gen *Tabajara) getValueAccident(accidentType string, defaultValue float64, resourceName string) float64 {
+	if accident, ok := gen.Accidents[GetAccidentKey(resourceName, accidentType)]; ok {
+		return accident.Value
+	}
+	return defaultValue
 }
