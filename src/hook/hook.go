@@ -10,7 +10,6 @@ import (
 	"github.com/abilioesteves/goh/gohtypes"
 	"github.com/abilioesteves/metrics-generator-tabajara/src/generator"
 	"github.com/gorilla/mux"
-	"github.com/labbsr0x/bindman-dns-webhook/src/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -71,7 +70,7 @@ func (hook *DefaultHook) DeleteAccident(w http.ResponseWriter, r *http.Request) 
 	accidentType := vars["accidentType"]
 	if strings.Trim(resourceName, " ") != "" && strings.Trim(accidentType, " ") != "" {
 		err := hook.Generator.DeleteAccident(accidentType, resourceName)
-		gohtypes.PanicIfError(fmt.Sprintf("Not possible to delete the accident '%s'", vars["resourceName"], 500, err)
+		gohtypes.PanicIfError(fmt.Sprintf("Not possible to delete the accident '%s'", vars["resourceName"]), 500, err)
 
 		gohserver.WriteJSONResponse(true, 200, w)
 	}

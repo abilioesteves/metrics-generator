@@ -2,6 +2,7 @@ package generator
 
 import (
 	"sync"
+	"time"
 
 	"github.com/abilioesteves/metrics-generator-tabajara/src/generator/accidenttypes"
 	"github.com/abilioesteves/metrics-generator-tabajara/src/metrics"
@@ -28,73 +29,115 @@ func NewGeneratorTabajara(collector *metrics.Collector, entropy Entropy) *Tabaja
 func (gen *Tabajara) Init() {
 	logrus.Infof("Starting requests simulation to generate metrics...")
 	for {
-		statuses := []string{"4xx", "2xx", "5xx"}
-		methods := []string{"POST", "GET", "DELETE", "PUT"}
-		oss := []string{"ios", "android"}
-
 		func() {
 			gen.l.Lock()
 			defer gen.l.Unlock()
 
-			uri := getRandomElemNormal(gen.getUris())
-			serviceVersion := getRandomElemNormal(gen.getServiceVersions())
-
-			calls := int(gen.getValueAccident(accidenttypes.Calls, 1.0, uri))
-
-			for i := 0; i < calls; i++ {
-				appVersion := getRandomElemNormal(gen.getAppVersions())
-				device := getRandomElemNormal(gen.getDevices())
-				os := getRandomElemNormal(oss)
-				method := methods[randomInt(int64(hash(uri)), len(methods))]
-				status := getRandomElemNormal(statuses)
-
-				gen.Collector.HTTPRequestsPerServiceVersion.WithLabelValues(
-					uri,
-					method,
-					status,
-					serviceVersion,
-				).Observe(gen.getValueAccident(accidenttypes.Latency, 0.3, uri)) // TODO get random duration around 0.3 median
-
-				gen.Collector.HTTPRequestsPerAppVersion.WithLabelValues(
-					uri,
-					method,
-					status,
-					appVersion,
-				).Inc()
-
-				gen.Collector.HTTPRequestsPerDevice.WithLabelValues(
-					uri,
-					method,
-					status,
-					os+device,
-				).Inc()
-			}
-
-			gen.Collector.HTTPPendingRequests.WithLabelValues(
-				serviceVersion,
-			).Set(float64(randomRangeNormal(0, 400)))
+			gen.FillMetrics()
 		}()
+
+		time.Sleep(1 * time.Millisecond)
 	}
 }
 
 // CreateAccident creates observation accidents to an specific resource
 func (gen *Tabajara) CreateAccident(accident Accident) (err error) {
+	gen.l.Lock()
+	defer gen.l.Unlock()
+
+	gen.Accidents[GetAccidentKey(accident.Type, accident.ResourceName)] = accident
+
 	return
 }
 
 // DeleteAccident deletes observation accidents to an specific resource
-func (gen *Tabajara) DeleteAccident(resourceName string) (err error) {
+func (gen *Tabajara) DeleteAccident(accidentType, resourceName string) (err error) {
+	gen.l.Lock()
+	defer gen.l.Unlock()
+
+	delete(gen.Accidents, GetAccidentKey(accidentType, resourceName))
+
 	return
 }
 
 // DeleteAccidents deletes all accidents
 func (gen *Tabajara) DeleteAccidents() (err error) {
+	gen.l.Lock()
+	defer gen.l.Unlock()
+
+	gen.Accidents = make(map[string]Accident)
 	return
 }
 
 // SetEntropy increases the number of returned time-series by n
 func (gen *Tabajara) SetEntropy(e Entropy) (err error) {
+	gen.l.Lock()
+	defer gen.l.Unlock()
+
+	gen.Entropy = e
 	return
+}
+
+// FillMetrics advances the state of the registered generator metrics with configurable random values
+func (gen *Tabajara) FillMetrics() {
+	statuses := []string{"4xx", "2xx", "5xx"}
+	methods := []string{"POST", "GET", "DELETE", "PUT"}
+	oss := []string{"ios", "android"}
+
+	uri := getRandomElemNormal(gen.getUris())
+	serviceVersion := getRandomElemNormal(gen.getServiceVersions())
+	calls := int(gen.getValueAccident(accidenttypes.Calls, 1.0, uri))
+
+	for i := 0; i < calls; i++ {
+		appVersion := getRandomElemNormal(gen.getAppVersions())
+		device := getRandomElemNormal(gen.getDevices())
+		os := getRandomElemNormal(oss)
+		method := methods[randomInt(int64(hash(uri)), len(methods))]
+		status := getRandomElemNormal(statuses)
+
+		gen.FillHTTPRequestsPerServiceVersion(uri, method, status, serviceVersion)
+		gen.FillHTTPRequestsPerAppVersion(uri, method, status, appVersion)
+		gen.FillHTTPRequestsPerDevice(uri, method, status, os, device)
+	}
+
+	gen.FillHTTPPendingRequests(serviceVersion)
+}
+
+// FillHTTPRequestsPerServiceVersion fills the HTTPRequestsPerServiceVersion metric
+func (gen *Tabajara) FillHTTPRequestsPerServiceVersion(uri, method, status, serviceVersion string) {
+	gen.Collector.HTTPRequestsPerServiceVersion.WithLabelValues(
+		uri,
+		method,
+		status,
+		serviceVersion,
+	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
+}
+
+// FillHTTPRequestsPerAppVersion fills the HTTPRequestsPerAppVersion metric
+func (gen *Tabajara) FillHTTPRequestsPerAppVersion(uri, method, status, appVersion string) {
+	gen.Collector.HTTPRequestsPerAppVersion.WithLabelValues(
+		uri,
+		method,
+		status,
+		appVersion,
+	).Inc()
+}
+
+// FillHTTPPendingRequests fills the HTTPPendingRequests metric
+func (gen *Tabajara) FillHTTPPendingRequests(serviceVersion string) {
+	gen.Collector.HTTPPendingRequests.WithLabelValues(
+		serviceVersion,
+	).Set(float64(randomRangeNormal(0, 400)))
+}
+
+// FillHTTPRequestsPerDevice fills the HTTPRequestsPerDevice metric
+func (gen *Tabajara) FillHTTPRequestsPerDevice(uri, method, status, os, device string) {
+	gen.Collector.HTTPRequestsPerDevice.WithLabelValues(
+		uri,
+		method,
+		status,
+		os+device,
+	).Inc()
 }
 
 func (gen *Tabajara) getUris() []string {

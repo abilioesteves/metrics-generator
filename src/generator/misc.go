@@ -45,3 +45,10 @@ func randomInt(seed int64, max int) int {
 	s1 := rand.NewSource(seed)
 	return rand.New(s1).Intn(max)
 }
+
+func getSampleRequestTime(uri string) (requestTime float64) {
+	median := (hash(uri)%23 + 1) * 100
+	requestTime = generateSample(float64(median), float64(median)/5) / 1000.0
+	requestTime = math.Max(requestTime, 0)
+	return
+}
