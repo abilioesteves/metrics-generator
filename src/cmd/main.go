@@ -16,8 +16,8 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	g := generator.NewGeneratorTabajara(metrics.Init(), generator.GetDefaultEntropy())
-	go g.Init(ctx)         // fire metrics generator
-	go hook.InitDefault(g) // fire webhook
+	go g.Init(ctx)                   // fire metrics generator
+	go hook.NewDefaultHook(g).Init() // fire webhook
 	go gracefulStop(cancel)
 	select {} // keep-alive magic
 }

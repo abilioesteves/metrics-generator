@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/abilioesteves/goh/gohserver"
@@ -16,29 +17,33 @@ import (
 // DefaultHook defines the generator structure that implements the API
 type DefaultHook struct {
 	Generator generator.Generator
+	router    *mux.Router
 }
 
-// InitDefault Initializes a new default webhook
-func InitDefault(generator generator.Generator) *DefaultHook {
-	logrus.Infof("Initializing webhook...")
+// NewDefaultHook instantiates a new default hook structure
+func NewDefaultHook(generator generator.Generator) *DefaultHook {
 	hook := &DefaultHook{
 		Generator: generator,
+		router:    mux.NewRouter(),
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/accidents/{accidentType}/{resourceName}", hook.DeleteAccident).Methods("DELETE")
-	router.HandleFunc("/accidents", hook.DeleteAccidents).Methods("DELETE")
-	router.HandleFunc("/accidents", hook.CreateAccident).Methods("POST")
-	router.HandleFunc("/entropy/set", hook.CreateAccident).Methods("POST")
+	hook.router.HandleFunc("/accidents/{accidentType}/{resourceName}", hook.DeleteAccident).Methods("DELETE")
+	hook.router.HandleFunc("/accidents", hook.DeleteAccidents).Methods("DELETE")
+	hook.router.HandleFunc("/accidents", hook.CreateAccident).Methods("POST")
+	hook.router.HandleFunc("/entropy/set", hook.CreateAccident).Methods("POST")
 
-	logrus.Info("Initialized Metrics Generator Tabajara Webhook")
-	err := http.ListenAndServe("0.0.0.0:32865", router)
+	return hook
+}
+
+// Init Initializes a new default webhook
+func (hook *DefaultHook) Init() {
+	logrus.Info("Initializing the default webhook...")
+	err := http.ListenAndServe("0.0.0.0:32865", hook.router)
 	if err != nil {
 		logrus.Errorf("Error initializing the Metrics Generator Tabajara: %v", err)
+		os.Exit(1)
 	}
-
-	logrus.Infof("Webhook initialized!")
-	return hook
+	logrus.Infof("Default webhook initialized!")
 }
 
 // CreateAccident creates observation accidents to an specific resource
