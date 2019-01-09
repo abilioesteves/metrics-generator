@@ -1,6 +1,9 @@
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
+)
 
 var instance *Collector
 
@@ -17,6 +20,7 @@ type Collector struct {
 
 // Init properly initializes system metrics and registers them to the prometheus registry
 func Init() *Collector {
+	logrus.Infof("Registering metrics collectors...")
 	if instance != nil {
 		instance = &Collector{
 			HTTPRequestsPerServiceVersion: getHTTPRequestsPerServiceVersion(),
@@ -31,6 +35,7 @@ func Init() *Collector {
 		prometheus.MustRegister(instance.HTTPPendingRequests)
 	}
 
+	logrus.Infof("Now collecting HTTP Requestes metrics!")
 	return instance
 }
 

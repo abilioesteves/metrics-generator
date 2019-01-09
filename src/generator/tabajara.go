@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -26,18 +27,21 @@ func NewGeneratorTabajara(collector *metrics.Collector, entropy Entropy) *Tabaja
 }
 
 // Init initializes the generation of the dummy metrics
-func (gen *Tabajara) Init() {
-	logrus.Infof("Starting requests simulation to generate metrics...")
-	for {
-		func() {
-			gen.l.Lock()
-			defer gen.l.Unlock()
-
-			gen.FillMetrics()
-		}()
-
-		time.Sleep(1 * time.Millisecond)
-	}
+func (gen *Tabajara) Init(ctx context.Context) {
+	logrus.Infof("Initialing metrics generator...")
+	go func() {
+		c := time.Tick(1 * time.Millisecond)
+		for {
+			select {
+			case <-ctx.Done():
+				logrus.Info("Generator Tabajara stopped!")
+				return
+			case <-c:
+				gen.FillMetrics()
+			}
+		}
+	}()
+	logrus.Infof("Metrics generator initialized!")
 }
 
 // CreateAccident creates observation accidents to an specific resource
@@ -80,6 +84,9 @@ func (gen *Tabajara) SetEntropy(e Entropy) (err error) {
 
 // FillMetrics advances the state of the registered generator metrics with configurable random values
 func (gen *Tabajara) FillMetrics() {
+	gen.l.Lock()
+	defer gen.l.Unlock()
+
 	statuses := []string{"4xx", "2xx", "5xx"}
 	methods := []string{"POST", "GET", "DELETE", "PUT"}
 	oss := []string{"ios", "android"}
