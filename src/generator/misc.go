@@ -47,8 +47,20 @@ func randomInt(seed int64, max int) int {
 }
 
 func getSampleRequestTime(uri string) (requestTime float64) {
-	median := (hash(uri)%23 + 1) * 100
-	requestTime = generateSample(float64(median), float64(median)/5) / 1000.0
-	requestTime = math.Max(requestTime, 0)
+	median := (hash(uri)%23 + 1) * 100                                        // 100 - 2300
+	requestTime = generateSample(float64(median), float64(median)/5) / 1000.0 // sample normal values around the defined median
+	requestTime = math.Max(requestTime, 0.01)                                 // minimum request time defined as 0.01
 	return
+}
+
+func getStatusWithErrorAccident(accident float64) string {
+	sr := rand.Intn(100)
+	abs := int(accident) * 100
+	if sr <= abs {
+		return "5xx"
+	} else if sr > abs && sr < 1-abs {
+		return "4xx"
+	} else {
+		return "2xx"
+	}
 }
