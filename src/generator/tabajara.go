@@ -26,7 +26,7 @@ func NewGeneratorTabajara(collector *metrics.Collector, entropy Entropy) *Tabaja
 
 // Init initializes the generation of the dummy metrics
 func (gen *Tabajara) Init(ctx context.Context) {
-	logrus.Infof("Initialing metrics generator...")
+	logrus.Infof("Initializing metrics generator...")
 	go func() {
 		c := time.Tick(1 * time.Millisecond)
 		for {
