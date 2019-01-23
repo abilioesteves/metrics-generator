@@ -5,14 +5,21 @@ services:
   generator:
     build: .
     image: abilioesteves/metrics-generator-tabajara
-    environment:
-      - COMPONENT_NAME=testserver
-      - COMPONENT_VERSION=1.0.0
-      - ACCIDENT_RESOURCE=transaction-080
-      - ACCIDENT_TYPE=latency
-      - ACCIDENT_RATIO=100
     ports:
       - 3000:3000
+
+  prometheus:
+    image: abilioesteves/prometheus
+    ports:
+      - 9090:9090
+    environment:
+      - SCRAPE_INTERVAL=15s
+      - SCRAPE_TIMEOUT=10s
+      - STATIC_SCRAPE_TARGETS=tabajara@localhost:3000/metrics
+      - DNS_SCRAPE_TARGETS=
+      - SCHEME_SCRAPE_TARGETS=http
+      - REMOTE_WRITE=
+      - REMOTE_READ=
 
   # grafana:
   #   image: flaviostutz/grafana

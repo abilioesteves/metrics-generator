@@ -8,10 +8,4 @@ if [ "$SERVER_NAME" == "" ]; then
 fi
 
 echo "Starting the almighty Metrics Generator Tabajara..."
-metrics-generator-tabajara \
-    --server-name=${SERVER_NAME} \
-    --component-name=${COMPONENT_NAME} \
-    --component-version=${COMPONENT_VERSION} \
-    --accident-resource="${ACCIDENT_RESOURCE}" \
-    --accident-ratio="${ACCIDENT_RATIO}" \
-    --accident-type="$ACCIDENT_TYPE"
+tabajara
