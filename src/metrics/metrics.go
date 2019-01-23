@@ -21,7 +21,7 @@ type Collector struct {
 // Init properly initializes system metrics and registers them to the prometheus registry
 func Init() *Collector {
 	logrus.Infof("Registering metrics collectors...")
-	if instance != nil {
+	if instance == nil {
 		instance = &Collector{
 			HTTPRequestsPerServiceVersion: getHTTPRequestsPerServiceVersion(),
 			HTTPRequestsPerAppVersion:     getHTTPRequestsPerAppVersion(),
