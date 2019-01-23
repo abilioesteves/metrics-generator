@@ -16,7 +16,7 @@ func getRandomElem(items []string) string {
 }
 
 func getRandomElemNormal(items []string) string {
-	return items[randomRangeNormal(0, len(items)-1)]
+	return items[randomRangeNormal(0, len(items))] //randomRangeNormal guarantees len(items) will be unreachable
 }
 
 func generateItems(prefix string, qtty int) []string {
@@ -31,8 +31,8 @@ func randomRangeNormal(min int, max int) int {
 	median := float64((max - min) / 2)
 	v := generateSample(median+0.5, median/3)
 	mi := float64(min)
-	ma := float64(max)
-	return min + int(math.Max(float64(math.Min(float64(v), ma)), mi))
+	ma := float64(max) - 0.0000000001 // // max will be unreachable
+	return min + int(math.Max(math.Min(float64(v), ma), mi))
 }
 
 func hash(s string) uint32 {
@@ -47,7 +47,7 @@ func randomInt(seed int64, max int) int {
 }
 
 func getSampleRequestTime(uri string) (requestTime float64) {
-	median := (hash(uri)%23 + 1) * 100                                        // 100 - 2300
+	median := (hash(uri)%23 + 1) * 100                                        // 100 - 2300 indexed by uri
 	requestTime = generateSample(float64(median), float64(median)/5) / 1000.0 // sample normal values around the defined median
 	requestTime = math.Max(requestTime, 0.01)                                 // minimum request time defined as 0.01
 	return

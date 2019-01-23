@@ -28,7 +28,7 @@ func NewGeneratorTabajara(collector *metrics.Collector, entropy Entropy) *Tabaja
 func (gen *Tabajara) Init(ctx context.Context) {
 	logrus.Infof("Initializing metrics generator...")
 	go func() {
-		c := time.Tick(1 * time.Millisecond)
+		c := time.Tick(10 * time.Millisecond)
 		for {
 			select {
 			case <-ctx.Done():

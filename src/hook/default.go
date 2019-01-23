@@ -11,6 +11,7 @@ import (
 	"github.com/abilioesteves/goh/gohtypes"
 	"github.com/abilioesteves/metrics-generator-tabajara/src/generator"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,6 +32,7 @@ func NewDefaultHook(generator generator.Generator) *DefaultHook {
 	hook.router.HandleFunc("/accidents", hook.DeleteAccidents).Methods("DELETE")
 	hook.router.HandleFunc("/accidents", hook.CreateAccident).Methods("POST")
 	hook.router.HandleFunc("/entropy/set", hook.CreateAccident).Methods("POST")
+	hook.router.Handle("/metrics", promhttp.Handler())
 
 	return hook
 }

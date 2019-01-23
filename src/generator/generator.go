@@ -38,5 +38,5 @@ func GetDefaultEntropy() Entropy {
 
 // GetAccidentKey returns the accident key based on the resource name and resource type
 func GetAccidentKey(resourceName, accidentType string) string {
-	return resourceName + accidentType
+	return resourceName + ":" + accidentType
 }

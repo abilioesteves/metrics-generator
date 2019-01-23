@@ -29,10 +29,7 @@ func Init() *Collector {
 			HTTPPendingRequests:           getHTTPPendingRequests(),
 		}
 
-		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion)
-		prometheus.MustRegister(instance.HTTPRequestsPerAppVersion)
-		prometheus.MustRegister(instance.HTTPRequestsPerDevice)
-		prometheus.MustRegister(instance.HTTPPendingRequests)
+		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion, instance.HTTPRequestsPerAppVersion, instance.HTTPRequestsPerDevice, instance.HTTPPendingRequests)
 	}
 
 	logrus.Infof("Now collecting HTTP Requestes metrics!")
