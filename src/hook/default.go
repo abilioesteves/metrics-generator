@@ -31,7 +31,7 @@ func NewDefaultHook(generator generator.Generator) *DefaultHook {
 	hook.router.HandleFunc("/accidents/{accidentType}/{resourceName}", hook.DeleteAccident).Methods("DELETE")
 	hook.router.HandleFunc("/accidents", hook.DeleteAccidents).Methods("DELETE")
 	hook.router.HandleFunc("/accidents", hook.CreateAccident).Methods("POST")
-	hook.router.HandleFunc("/entropy/set", hook.CreateAccident).Methods("POST")
+	hook.router.HandleFunc("/entropy/set", hook.SetEntropy).Methods("POST")
 	hook.router.Handle("/metrics", promhttp.Handler())
 
 	return hook

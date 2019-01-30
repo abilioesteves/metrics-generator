@@ -18,7 +18,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 
 FROM alpine:latest
 
-EXPOSE 3000
+EXPOSE 32856
 
 COPY --from=BUILD /tabajara /
 

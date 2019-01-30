@@ -1,12 +1,13 @@
-version: '3.3'
+# docker stack deploy -c docker-compose.yml tabajara
+version: '3.5'
 
 services:
 
   generator:
     build: .
-    image: abilioesteves/metrics-generator-tabajara
+    image: abilioesteves/metrics-generator-tabajara:1.0.0
     ports:
-      - 3000:3000
+      - 32865:32865
 
   prometheus:
     image: abilioesteves/prometheus
@@ -15,58 +16,19 @@ services:
     environment:
       - SCRAPE_INTERVAL=15s
       - SCRAPE_TIMEOUT=10s
-      - STATIC_SCRAPE_TARGETS=tabajara@localhost:3000/metrics
+      - STATIC_SCRAPE_TARGETS=tabajara@generator:32865/metrics
       - DNS_SCRAPE_TARGETS=
       - SCHEME_SCRAPE_TARGETS=http
       - REMOTE_WRITE=
       - REMOTE_READ=
 
-  # grafana:
-  #   image: flaviostutz/grafana
-  #   ports:
-  #     - 4000:3000
-  #   volumes:
-  #     - grafana:/data
-
-  # prometheus:
-  #   image: flaviostutz/prometheus
-  #   ports:
-  #     - 9090:9090
-  #   environment:
-  #     - STATIC_SCRAPE_TARGETS=generator@generator:3000
-  #   volumes:
-  #     - prometheus:/prometheus
-
-  # alertmanager:
-  #   image: flaviostutz/alertmanager-webhook
-  #   ports:
-  #     - 9093:9093
-  #   environment:
-  #     - WEBHOOK_URL=http://telegrambot:8080
-  #   volumes:
-  #     - alertmanager:/alertmanager
-
-  # telegrambot:
-  #   image: metalmatze/alertmanager-bot:0.3.1
-  #   environment:
-  #     - ALERTMANAGER_URL=http://alertmanager:9093
-  #     - BOLT_PATH=/data/bot.db
-  #     - STORE=bolt
-  #     - LISTEN_ADDR=0.0.0.0:8080
-  #     - TELEGRAM_ADMIN=123
-  #     - TELEGRAM_TOKEN=123:XXXXX
-  #   volumes:
-  #     - telegrambot:/data
-
-  # unsee:
-  #   image: cloudflare/unsee:v0.8.0
-  #   ports:
-  #     - 8080:8080
-  #   environment:
-  #     - ALERTMANAGER_URIS=default:http://alertmanager:9093
+  grafana:
+    image: flaviostutz/grafana
+    ports:
+      - 4000:3000
+    volumes:
+      - grafana:/data
 
 volumes:
   grafana:
   prometheus:
-  alertmanager:
-  telegrambot:
