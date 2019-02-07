@@ -21,7 +21,7 @@ type Entropy struct {
 
 	ServiceVersionCount int `json:"serviceversioncount,omitempty"`
 
-	AppVersionCount int `json:"apiversioncount,omitempty"`
+	AppVersionCount int `json:"appversioncount,omitempty"`
 
 	DeviceCount int `json:"devicecount,omitempty"`
 }

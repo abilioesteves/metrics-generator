@@ -21,6 +21,7 @@ func NewGeneratorTabajara(collector *metrics.Collector, entropy Entropy) *Tabaja
 	return &Tabajara{
 		Collector: collector,
 		Entropy:   entropy,
+		Accidents: make(map[string]Accident),
 	}
 }
 
@@ -44,25 +45,31 @@ func (gen *Tabajara) Init(ctx context.Context) {
 
 // CreateAccident creates observation accidents to an specific resource
 func (gen *Tabajara) CreateAccident(accident Accident) (err error) {
-	gen.Accidents[GetAccidentKey(accident.Type, accident.ResourceName)] = accident
+	key := GetAccidentKey(accident.ResourceName, accident.Type)
+	gen.Accidents[key] = accident
+	logrus.Infof("Accident '%v' -> %v' installed!", key, accident)
 	return
 }
 
 // DeleteAccident deletes observation accidents to an specific resource
 func (gen *Tabajara) DeleteAccident(accidentType, resourceName string) (err error) {
-	delete(gen.Accidents, GetAccidentKey(accidentType, resourceName))
+	key := GetAccidentKey(resourceName, accidentType)
+	delete(gen.Accidents, key)
+	logrus.Infof("Accident '%v' removed!", key)
 	return
 }
 
 // DeleteAccidents deletes all accidents
 func (gen *Tabajara) DeleteAccidents() (err error) {
 	gen.Accidents = make(map[string]Accident)
+	logrus.Infof("All accidents removed!")
 	return
 }
 
 // SetEntropy increases the number of returned time-series by n
 func (gen *Tabajara) SetEntropy(e Entropy) (err error) {
 	gen.Entropy = e
+	logrus.Infof("Entropy '%v' set!", e)
 	return
 }
 
@@ -144,7 +151,10 @@ func (gen *Tabajara) getDevices() []string {
 }
 
 func (gen *Tabajara) getValueAccident(accidentType string, defaultValue float64, resourceName string) float64 {
-	if accident, ok := gen.Accidents[GetAccidentKey(resourceName, accidentType)]; ok {
+	key := GetAccidentKey(resourceName, accidentType)
+	if accident, ok := gen.Accidents[key]; ok {
+		time.Sleep(2 * time.Second)
+		logrus.Infof("Accident '%v' in use", accident)
 		return accident.Value
 	}
 	return defaultValue

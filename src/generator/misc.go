@@ -31,7 +31,7 @@ func randomRangeNormal(min int, max int) int {
 	median := float64((max - min) / 2)
 	v := generateSample(median+0.5, median/3)
 	mi := float64(min)
-	ma := float64(max) - 0.0000000001 // // max will be unreachable
+	ma := float64(max) - 0.1 // // max will be unreachable
 	return min + int(math.Max(math.Min(float64(v), ma), mi))
 }
 

@@ -16,7 +16,7 @@ services:
     environment:
       - SCRAPE_INTERVAL=15s
       - SCRAPE_TIMEOUT=10s
-      - STATIC_SCRAPE_TARGETS=tabajara@generator:32865/metrics
+      - STATIC_SCRAPE_TARGETS=t1@generator:32865/metrics
       - DNS_SCRAPE_TARGETS=
       - SCHEME_SCRAPE_TARGETS=http
       - REMOTE_WRITE=
@@ -32,3 +32,4 @@ services:
 volumes:
   grafana:
   prometheus:
+
