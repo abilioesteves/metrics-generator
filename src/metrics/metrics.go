@@ -32,7 +32,7 @@ func Init() *Collector {
 			HTTPRequestsPerServiceVersionSummary: getHTTPRequestsPerServiceVersionSummary(),
 		}
 
-		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion, instance.HTTPRequestsPerAppVersion, instance.HTTPRequestsPerDevice, instance.HTTPPendingRequests)
+		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion, instance.HTTPRequestsPerAppVersion, instance.HTTPRequestsPerDevice, instance.HTTPPendingRequests, instance.HTTPRequestsPerServiceVersionSummary)
 	}
 
 	logrus.Infof("Now collecting HTTP Requestes metrics!")
@@ -43,7 +43,7 @@ func getHTTPRequestsPerServiceVersionSummary() *prometheus.SummaryVec {
 	return prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Name:       "http_requests_seconds_summary",
 		Help:       "HTTP requests count and latency summary",
-		Objectives: map[float64]float64{0.75: 0.2, 0.95: 0.05},
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 	}, []string{
 		"uri",             // requested resource
 		"method",          // HTTP method
