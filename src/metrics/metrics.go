@@ -29,6 +29,7 @@ func Init() *Collector {
 			HTTPRequestsPerAppVersion:     getHTTPRequestsPerAppVersion(),
 			HTTPRequestsPerDevice:         getHTTPRequestsPerDevice(),
 			HTTPPendingRequests:           getHTTPPendingRequests(),
+			HTTPRequestsPerServiceVersion: getHTTPRequestsPerServiceVersionSummary(),
 		}
 
 		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion, instance.HTTPRequestsPerAppVersion, instance.HTTPRequestsPerDevice, instance.HTTPPendingRequests)
