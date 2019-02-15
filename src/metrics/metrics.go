@@ -25,11 +25,11 @@ func Init() *Collector {
 	logrus.Infof("Registering metrics collectors...")
 	if instance == nil {
 		instance = &Collector{
-			HTTPRequestsPerServiceVersion: getHTTPRequestsPerServiceVersion(),
-			HTTPRequestsPerAppVersion:     getHTTPRequestsPerAppVersion(),
-			HTTPRequestsPerDevice:         getHTTPRequestsPerDevice(),
-			HTTPPendingRequests:           getHTTPPendingRequests(),
-			HTTPRequestsPerServiceVersion: getHTTPRequestsPerServiceVersionSummary(),
+			HTTPRequestsPerServiceVersion:        getHTTPRequestsPerServiceVersion(),
+			HTTPRequestsPerAppVersion:            getHTTPRequestsPerAppVersion(),
+			HTTPRequestsPerDevice:                getHTTPRequestsPerDevice(),
+			HTTPPendingRequests:                  getHTTPPendingRequests(),
+			HTTPRequestsPerServiceVersionSummary: getHTTPRequestsPerServiceVersionSummary(),
 		}
 
 		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion, instance.HTTPRequestsPerAppVersion, instance.HTTPRequestsPerDevice, instance.HTTPPendingRequests)
