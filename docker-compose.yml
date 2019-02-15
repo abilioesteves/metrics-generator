@@ -1,35 +1,10 @@
-# docker stack deploy -c docker-compose.yml tabajara
 version: '3.5'
 
 services:
 
   generator:
     build: .
-    image: abilioesteves/metrics-generator-tabajara:1.0.0
+    image: abilioesteves/metrics-generator:1.0.0
     ports:
       - 32865:32865
-
-  prometheus:
-    image: abilioesteves/prometheus
-    ports:
-      - 9090:9090
-    environment:
-      - SCRAPE_INTERVAL=15s
-      - SCRAPE_TIMEOUT=10s
-      - STATIC_SCRAPE_TARGETS=t1@generator:32865/metrics
-      - DNS_SCRAPE_TARGETS=
-      - SCHEME_SCRAPE_TARGETS=http
-      - REMOTE_WRITE=
-      - REMOTE_READ=
-
-  grafana:
-    image: flaviostutz/grafana
-    ports:
-      - 4000:3000
-    volumes:
-      - grafana:/data
-
-volumes:
-  grafana:
-  prometheus:
 

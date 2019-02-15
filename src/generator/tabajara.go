@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/abilioesteves/metrics-generator-tabajara/src/generator/accidenttypes"
-	"github.com/abilioesteves/metrics-generator-tabajara/src/metrics"
+	"github.com/abilioesteves/metrics-generator/src/generator/accidenttypes"
+	"github.com/abilioesteves/metrics-generator/src/metrics"
 	"github.com/sirupsen/logrus"
 )
 
@@ -90,6 +90,7 @@ func (gen *Tabajara) FillMetrics() {
 		status := getStatusWithErrorAccident(gen.getValueAccident(accidenttypes.ErrorRate, accidenttypes.DefaultErrorRate, uri))
 
 		gen.FillHTTPRequestsPerServiceVersion(uri, method, status, serviceVersion)
+		gen.FillHTTPRequestsPerServiceVersionSummary(uri, method, status, serviceVersion)
 		gen.FillHTTPRequestsPerAppVersion(uri, method, status, appVersion)
 		gen.FillHTTPRequestsPerDevice(uri, method, status, os, device)
 	}
@@ -100,6 +101,16 @@ func (gen *Tabajara) FillMetrics() {
 // FillHTTPRequestsPerServiceVersion fills the HTTPRequestsPerServiceVersion metric
 func (gen *Tabajara) FillHTTPRequestsPerServiceVersion(uri, method, status, serviceVersion string) {
 	gen.Collector.HTTPRequestsPerServiceVersion.WithLabelValues(
+		uri,
+		method,
+		status,
+		serviceVersion,
+	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
+}
+
+// FillHTTPRequestsPerServiceVersionSummary fills the HTTPRequestsPerServiceVersionSummary metric
+func (gen *Tabajara) FillHTTPRequestsPerServiceVersionSummary(uri, method, status, serviceVersion string) {
+	gen.Collector.HTTPRequestsPerServiceVersionSummary.WithLabelValues(
 		uri,
 		method,
 		status,
@@ -153,8 +164,6 @@ func (gen *Tabajara) getDevices() []string {
 func (gen *Tabajara) getValueAccident(accidentType string, defaultValue float64, resourceName string) float64 {
 	key := GetAccidentKey(resourceName, accidentType)
 	if accident, ok := gen.Accidents[key]; ok {
-		time.Sleep(2 * time.Second)
-		logrus.Infof("Accident '%v' in use", accident)
 		return accident.Value
 	}
 	return defaultValue

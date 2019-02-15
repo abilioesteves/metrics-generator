@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/abilioesteves/goh/gohcmd"
-	"github.com/abilioesteves/metrics-generator-tabajara/src/generator"
-	"github.com/abilioesteves/metrics-generator-tabajara/src/hook"
-	"github.com/abilioesteves/metrics-generator-tabajara/src/metrics"
+	"github.com/abilioesteves/metrics-generator/src/generator"
+	"github.com/abilioesteves/metrics-generator/src/hook"
+	"github.com/abilioesteves/metrics-generator/src/metrics"
 )
 
 func main() {

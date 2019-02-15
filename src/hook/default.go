@@ -9,7 +9,7 @@ import (
 
 	"github.com/abilioesteves/goh/gohserver"
 	"github.com/abilioesteves/goh/gohtypes"
-	"github.com/abilioesteves/metrics-generator-tabajara/src/generator"
+	"github.com/abilioesteves/metrics-generator/src/generator"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
