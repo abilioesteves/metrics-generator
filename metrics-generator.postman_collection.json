@@ -1,0 +1,116 @@
+{
+	"info": {
+		"_postman_id": "96456aa9-2e1c-45e9-b8ca-b04e61a3d0ae",
+		"name": "metrics-generator",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Accident",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"resourcename\": \"/resource/test-0016\",\n\t\"type\": \"calls\",\n\t\"value\": 1000\n}"
+				},
+				"url": {
+					"raw": "http://localhost:32865/accidents",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "32865",
+					"path": [
+						"accidents"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteAccident",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:32865/accidents/calls/resource%2ftest-0001",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "32865",
+					"path": [
+						"accidents",
+						"calls",
+						"resource%2ftest-0001"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteAccidents",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:32865/accidents",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "32865",
+					"path": [
+						"accidents"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SetEntropy",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"uricount\": 20,\n\t\"serviceversioncount\": 2,\n\t\"appversioncount\": 2,\n\t\"devicecount\": 2\n}"
+				},
+				"url": {
+					"raw": "http://localhost:32865/entropy/set",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "32865",
+					"path": [
+						"entropy",
+						"set"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
