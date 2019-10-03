@@ -76,89 +76,56 @@ func (gen *Tabajara) SetEntropy(e Entropy) (err error) {
 // FillMetrics advances the state of the registered generator metrics with configurable random values
 func (gen *Tabajara) FillMetrics() {
 	methods := []string{"POST", "GET", "DELETE", "PUT"}
-	oss := []string{"ios", "android"}
 
 	uri := getRandomElemNormal(gen.getUris())
-	serviceVersion := getRandomElemNormal(gen.getServiceVersions())
+	name := getRandomElemNormal(gen.getServiceNames())
 	calls := int(gen.getValueAccident(accidenttypes.Calls, accidenttypes.DefaultNumberOfCalls, uri))
 
 	for i := 0; i < calls; i++ {
-		appVersion := getRandomElemNormal(gen.getAppVersions())
-		device := getRandomElemNormal(gen.getDevices())
-		os := getRandomElemNormal(oss)
 		method := methods[randomInt(int64(hash(uri)), len(methods))]
 		status := getStatusWithErrorAccident(gen.getValueAccident(accidenttypes.ErrorRate, accidenttypes.DefaultErrorRate, uri))
 
-		gen.FillHTTPRequestsPerServiceVersion(uri, method, status, serviceVersion)
-		gen.FillHTTPRequestsPerServiceVersionSummary(uri, method, status, serviceVersion)
-		gen.FillHTTPRequestsPerAppVersion(uri, method, status, appVersion)
-		gen.FillHTTPRequestsPerDevice(uri, method, status, os, device)
+		gen.FillRequests(uri, method, status)
+		gen.FillResponses(uri, method, status)
 	}
 
-	gen.FillHTTPPendingRequests(serviceVersion)
+	gen.FillDependencies(name)
 }
 
-// FillHTTPRequestsPerServiceVersion fills the HTTPRequestsPerServiceVersion metric
-func (gen *Tabajara) FillHTTPRequestsPerServiceVersion(uri, method, status, serviceVersion string) {
-	gen.Collector.HTTPRequestsPerServiceVersion.WithLabelValues(
-		uri,
-		method,
+// FillRequests fills the RequestSecondsHistogram metric
+func (gen *Tabajara) FillRequests(uri, method, status string) {
+	gen.Collector.RequestSecondsHistogram.WithLabelValues(
+		"http",
 		status,
-		serviceVersion,
+		method,
+		uri,
 	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
 }
 
-// FillHTTPRequestsPerServiceVersionSummary fills the HTTPRequestsPerServiceVersionSummary metric
-func (gen *Tabajara) FillHTTPRequestsPerServiceVersionSummary(uri, method, status, serviceVersion string) {
-	gen.Collector.HTTPRequestsPerServiceVersionSummary.WithLabelValues(
-		uri,
-		method,
+// FillResponses fills the ResponseBytesCounter metric
+func (gen *Tabajara) FillResponses(uri, method, status string) {
+	gen.Collector.ResponseBytesCounter.WithLabelValues(
+		"http",
 		status,
-		serviceVersion,
-	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
+		method,
+		uri,
+	).Add(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
 }
 
-// FillHTTPRequestsPerAppVersion fills the HTTPRequestsPerAppVersion metric
-func (gen *Tabajara) FillHTTPRequestsPerAppVersion(uri, method, status, appVersion string) {
-	gen.Collector.HTTPRequestsPerAppVersion.WithLabelValues(
-		uri,
-		method,
-		status,
-		appVersion,
-	).Inc()
-}
-
-// FillHTTPPendingRequests fills the HTTPPendingRequests metric
-func (gen *Tabajara) FillHTTPPendingRequests(serviceVersion string) {
-	gen.Collector.HTTPPendingRequests.WithLabelValues(
-		serviceVersion,
-	).Set(float64(randomRangeNormal(0, 400)))
-}
-
-// FillHTTPRequestsPerDevice fills the HTTPRequestsPerDevice metric
-func (gen *Tabajara) FillHTTPRequestsPerDevice(uri, method, status, os, device string) {
-	gen.Collector.HTTPRequestsPerDevice.WithLabelValues(
-		uri,
-		method,
-		status,
-		os+device,
-	).Inc()
+// FillDependencies fills the DependencyUp metric
+func (gen *Tabajara) FillDependencies(name string) {
+	h := hash(name)
+	gen.Collector.DependencyUp.WithLabelValues(
+		name,
+	).Set(float64(h % 2))
 }
 
 func (gen *Tabajara) getUris() []string {
 	return generateItems("/resource/test-", gen.Entropy.URICount)
 }
 
-func (gen *Tabajara) getServiceVersions() []string {
-	return generateItems("backend-v", gen.Entropy.ServiceVersionCount)
-}
-
-func (gen *Tabajara) getAppVersions() []string {
-	return generateItems("v", gen.Entropy.AppVersionCount)
-}
-
-func (gen *Tabajara) getDevices() []string {
-	return generateItems("-", gen.Entropy.DeviceCount)
+func (gen *Tabajara) getServiceNames() []string {
+	return generateItems("Fake Dependency ", 10)
 }
 
 func (gen *Tabajara) getValueAccident(accidentType string, defaultValue float64, resourceName string) float64 {
