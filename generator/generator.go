@@ -18,21 +18,12 @@ type Accident struct {
 // Entropy defines the available configurations for a Tabajara Generator
 type Entropy struct {
 	URICount int `json:"uricount,omitempty"`
-
-	ServiceVersionCount int `json:"serviceversioncount,omitempty"`
-
-	AppVersionCount int `json:"appversioncount,omitempty"`
-
-	DeviceCount int `json:"devicecount,omitempty"`
 }
 
 // GetDefaultEntropy returns the default entropy setup for a generator
 func GetDefaultEntropy() Entropy {
 	return Entropy{
-		URICount:            10,
-		ServiceVersionCount: 2,
-		AppVersionCount:     2,
-		DeviceCount:         2,
+		URICount: 10,
 	}
 }
 

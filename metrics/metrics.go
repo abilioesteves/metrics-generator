@@ -9,15 +9,11 @@ var instance *Collector
 
 // Collector defines the available metric collectors for prometheus
 type Collector struct {
-	HTTPRequestsPerServiceVersionSummary *prometheus.SummaryVec
+	RequestSecondsHistogram *prometheus.HistogramVec
 
-	HTTPRequestsPerServiceVersion *prometheus.HistogramVec
+	ResponseBytesCounter *prometheus.CounterVec
 
-	HTTPRequestsPerAppVersion *prometheus.CounterVec
-
-	HTTPRequestsPerDevice *prometheus.CounterVec
-
-	HTTPPendingRequests *prometheus.GaugeVec
+	DependencyUp *prometheus.GaugeVec
 }
 
 // Init properly initializes system metrics and registers them to the prometheus registry
@@ -25,75 +21,48 @@ func Init() *Collector {
 	logrus.Infof("Registering metrics collectors...")
 	if instance == nil {
 		instance = &Collector{
-			HTTPRequestsPerServiceVersion:        getHTTPRequestsPerServiceVersion(),
-			HTTPRequestsPerAppVersion:            getHTTPRequestsPerAppVersion(),
-			HTTPRequestsPerDevice:                getHTTPRequestsPerDevice(),
-			HTTPPendingRequests:                  getHTTPPendingRequests(),
-			HTTPRequestsPerServiceVersionSummary: getHTTPRequestsPerServiceVersionSummary(),
+			RequestSecondsHistogram: getRequestSecondsHistogram(),
+			ResponseBytesCounter:    getResponseBytesCounter(),
+			DependencyUp:            getDependencyUp(),
 		}
 
-		prometheus.MustRegister(instance.HTTPRequestsPerServiceVersion, instance.HTTPRequestsPerAppVersion, instance.HTTPRequestsPerDevice, instance.HTTPPendingRequests, instance.HTTPRequestsPerServiceVersionSummary)
+		prometheus.MustRegister(instance.RequestSecondsHistogram, instance.ResponseBytesCounter, instance.DependencyUp)
 	}
 
 	logrus.Infof("Now collecting HTTP Requestes metrics!")
 	return instance
 }
 
-func getHTTPRequestsPerServiceVersionSummary() *prometheus.SummaryVec {
-	return prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Name:       "http_requests_seconds_summary",
-		Help:       "HTTP requests count and latency summary",
-		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
-	}, []string{
-		"uri",             // requested resource
-		"method",          // HTTP method
-		"status",          // status of the HTTP request
-		"service_version", // version of the back end system
-	})
-}
-
-func getHTTPRequestsPerServiceVersion() *prometheus.HistogramVec {
+func getRequestSecondsHistogram() *prometheus.HistogramVec {
 	return prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "http_requests_seconds_histogram",
+		Name:    "request_seconds",
 		Help:    "HTTP requests count and latency histogram",
-		Buckets: []float64{0.3, 4, 35},
+		Buckets: []float64{0.1, 0.3, 2},
 	}, []string{
-		"uri",             // requested resource
-		"method",          // HTTP method
-		"status",          // status of the HTTP request
-		"service_version", // version of the back end system
+		"type",   // request type (http, grpc, etc)
+		"status", // response status
+		"method", // method used to reach the endpoint
+		"addr",   // endpoint address
 	})
 }
 
-func getHTTPRequestsPerAppVersion() *prometheus.CounterVec {
+func getResponseBytesCounter() *prometheus.CounterVec {
 	return prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "http_requests_app_version_count",
-		Help: "HTTP requests count per app version",
+		Name: "response_size_bytes",
+		Help: "Response size bytes gauge",
 	}, []string{
-		"uri",         // requested resource
-		"method",      // HTTP method
-		"status",      // status of the HTTP request
-		"app_version", // version of the mobile app
+		"type",   // request type (http, grpc, etc)
+		"status", // response status
+		"method", // method used to reach the endpoint
+		"addr",   // endpoint address
 	})
 }
 
-func getHTTPRequestsPerDevice() *prometheus.CounterVec {
-	return prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "http_requests_device_count",
-		Help: "HTTP requests count per device",
-	}, []string{
-		"uri",    // requested resource
-		"method", // HTTP method
-		"status", // status of the HTTP request
-		"device", // version of the mobile app
-	})
-}
-
-func getHTTPPendingRequests() *prometheus.GaugeVec {
+func getDependencyUp() *prometheus.GaugeVec {
 	return prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "http_pending_requests",
-		Help: "HTTP pending requests",
+		Name: "dependency_up",
+		Help: "dependencies status",
 	}, []string{
-		"service_version", // version of the back end system
+		"name",
 	})
 }
