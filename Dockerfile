@@ -1,27 +1,25 @@
-FROM golang:1.11-alpine AS BUILD
+FROM abilioesteves/gowebbuilder:1.2.0 AS BUILD
 
-RUN apk add --no-cache gcc build-base git mercurial 
+WORKDIR /app
 
-ENV BUILD_PATH=$GOPATH/src/github.com/abilioesteves/metrics-generator-tabajara/src
+ADD go.mod .
+ADD go.sum .
+ADD main.go .
 
-RUN mkdir -p ${BUILD_PATH}
+RUN go mod download
 
-WORKDIR ${BUILD_PATH}
+ADD . .
 
-ADD ./src ./
-
-RUN go get -v ./...
-
-WORKDIR ${BUILD_PATH}/cmd
-
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o /tabajara .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o /generator .
 
 FROM alpine:latest
 
 EXPOSE 32856
 
-COPY --from=BUILD /tabajara /
+COPY --from=BUILD /generator /generator
+
+RUN chmod 777 /generator
 
 RUN echo "Starting the almighty Metrics Generator Tabajara..."
 
-CMD [ "/tabajara" ]
+CMD [ "/generator" ]
