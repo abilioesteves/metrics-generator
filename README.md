@@ -62,7 +62,7 @@ curl http://localhost:32865/accidents \
      --data "{
          \"resourcename\": \"/resource/test-0001\",
          \"type\": \"errorrate\",
-         \"value\": 100
+         \"value\": 70
      }";
 ```
 

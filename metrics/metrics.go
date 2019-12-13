@@ -39,10 +39,12 @@ func getRequestSecondsHistogram() *prometheus.HistogramVec {
 		Help:    "HTTP requests count and latency histogram",
 		Buckets: []float64{0.1, 0.3, 2},
 	}, []string{
-		"type",   // request type (http, grpc, etc)
-		"status", // response status
-		"method", // method used to reach the endpoint
-		"addr",   // endpoint address
+		"type",    // request type (http, grpc, etc)
+		"status",  // response status
+		"method",  // method used to reach the endpoint
+		"addr",    // endpoint address
+		"isError", // flag indicating if the status means an error or not
+		"version", // app version
 	})
 }
 
@@ -51,10 +53,12 @@ func getResponseBytesCounter() *prometheus.CounterVec {
 		Name: "response_size_bytes",
 		Help: "Response size bytes gauge",
 	}, []string{
-		"type",   // request type (http, grpc, etc)
-		"status", // response status
-		"method", // method used to reach the endpoint
-		"addr",   // endpoint address
+		"type",    // request type (http, grpc, etc)
+		"status",  // response status
+		"method",  // method used to reach the endpoint
+		"addr",    // endpoint address
+		"isError", // flag indicating if the status means an error or not
+		"version", // app version
 	})
 }
 

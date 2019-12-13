@@ -53,14 +53,14 @@ func getSampleRequestTime(uri string) (requestTime float64) {
 	return
 }
 
-func getStatusWithErrorAccident(accident float64) string {
+func getStatusWithErrorAccident(accident float64) (string, bool) {
 	sr := rand.Intn(100)
 	abs := int(accident) * 100
 	if sr <= abs {
-		return "5xx"
+		return "5xx", true
 	} else if sr > abs && sr < 1-abs {
-		return "4xx"
+		return "4xx", true
 	} else {
-		return "2xx"
+		return "2xx", false
 	}
 }

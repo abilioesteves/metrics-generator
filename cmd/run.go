@@ -3,10 +3,10 @@ package cmd
 import (
 	"context"
 
-	"github.com/labbsr0x/goh/gohcmd"
 	"github.com/abilioesteves/metrics-generator/generator"
 	"github.com/abilioesteves/metrics-generator/hook"
 	"github.com/abilioesteves/metrics-generator/metrics"
+	"github.com/labbsr0x/goh/gohcmd"
 )
 
 func Run() {

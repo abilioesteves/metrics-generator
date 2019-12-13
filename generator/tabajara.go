@@ -2,6 +2,7 @@ package generator
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/abilioesteves/metrics-generator/generator/accidenttypes"
@@ -83,33 +84,38 @@ func (gen *Tabajara) FillMetrics() {
 
 	for i := 0; i < calls; i++ {
 		method := methods[randomInt(int64(hash(uri)), len(methods))]
-		status := getStatusWithErrorAccident(gen.getValueAccident(accidenttypes.ErrorRate, accidenttypes.DefaultErrorRate, uri))
+		status, isError := getStatusWithErrorAccident(gen.getValueAccident(accidenttypes.ErrorRate, accidenttypes.DefaultErrorRate, uri))
 
-		gen.FillRequests(uri, method, status)
-		gen.FillResponses(uri, method, status)
+		gen.FillRequests(uri, method, status, "0.0.1", isError)
+		gen.FillResponses(uri, method, status, "0.0.1", isError)
 	}
 
 	gen.FillDependencies(name)
 }
 
 // FillRequests fills the RequestSecondsHistogram metric
-func (gen *Tabajara) FillRequests(uri, method, status string) {
+func (gen *Tabajara) FillRequests(uri, method, status, version string, isError bool) {
 	gen.Collector.RequestSecondsHistogram.WithLabelValues(
 		"http",
 		status,
 		method,
 		uri,
+		strconv.FormatBool(isError),
+		version,
 	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
 }
 
 // FillResponses fills the ResponseBytesCounter metric
-func (gen *Tabajara) FillResponses(uri, method, status string) {
+func (gen *Tabajara) FillResponses(uri, method, status, version string, isError bool) {
 	gen.Collector.ResponseBytesCounter.WithLabelValues(
 		"http",
 		status,
 		method,
 		uri,
+		strconv.FormatBool(isError),
+		version,
 	).Add(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
+
 }
 
 // FillDependencies fills the DependencyUp metric
