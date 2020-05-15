@@ -27,12 +27,12 @@ func generateItems(prefix string, qtty int) []string {
 	return result
 }
 
-func generateVersion(prefix string, qtty int) []string {
-	result := []string{}
-	for i := 1; i <= qtty; i++ {
-		result = append(result, fmt.Sprintf("%s%d", prefix, i))
+func generateErrorMessage(items []string, isError bool) string {
+	if isError {
+		return items[randomRangeNormal(0, len(items))]
+	} else {
+		return ""
 	}
-	return result
 }
 
 func randomRangeNormal(min int, max int) int {

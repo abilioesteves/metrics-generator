@@ -80,41 +80,40 @@ func (gen *Tabajara) FillMetrics() {
 
 	uri := getRandomElemNormal(gen.getUris())
 	name := getRandomElemNormal(gen.getServiceNames())
-	version := getRandomElemNormal(gen.getVersions())
 	calls := int(gen.getValueAccident(accidenttypes.Calls, accidenttypes.DefaultNumberOfCalls, uri))
 
 	for i := 0; i < calls; i++ {
 		method := methods[randomInt(int64(hash(uri)), len(methods))]
 		status, isError := getStatusWithErrorAccident(gen.getValueAccident(accidenttypes.ErrorRate, accidenttypes.DefaultErrorRate, uri))
-
-		gen.FillRequests(uri, method, status, version, isError)
-		gen.FillResponses(uri, method, status, version, isError)
+		errorMessage := generateErrorMessage(gen.getErrorMessage(), isError)
+		gen.FillRequests(uri, method, status, errorMessage, isError)
+		gen.FillResponses(uri, method, status, errorMessage, isError)
 	}
 
 	gen.FillDependencies(name)
 }
 
 // FillRequests fills the RequestSecondsHistogram metric
-func (gen *Tabajara) FillRequests(uri, method, status, version string, isError bool) {
+func (gen *Tabajara) FillRequests(uri, method, status, errorMessage string, isError bool) {
 	gen.Collector.RequestSecondsHistogram.WithLabelValues(
 		"http",
 		status,
 		method,
 		uri,
 		strconv.FormatBool(isError),
-		version,
+		errorMessage,
 	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
 }
 
 // FillResponses fills the ResponseBytesCounter metric
-func (gen *Tabajara) FillResponses(uri, method, status, version string, isError bool) {
+func (gen *Tabajara) FillResponses(uri, method, status, errorMessage string, isError bool) {
 	gen.Collector.ResponseBytesCounter.WithLabelValues(
 		"http",
 		status,
 		method,
 		uri,
 		strconv.FormatBool(isError),
-		version,
+		errorMessage,
 	).Add(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
 
 }
@@ -143,6 +142,6 @@ func (gen *Tabajara) getValueAccident(accidentType string, defaultValue float64,
 	return defaultValue
 }
 
-func (getn *Tabajara) getVersions() []string {
-	return generateVersion("0.0.", 4)
+func (gen *Tabajara) getErrorMessage() []string {
+	return generateItems("Error message example ", 2)
 }
