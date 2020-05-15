@@ -91,6 +91,7 @@ func (gen *Tabajara) FillMetrics() {
 	}
 
 	gen.FillDependencies(name)
+	gen.FillApplicationInfo("v1.0.0")
 }
 
 // FillRequests fills the RequestSecondsHistogram metric
@@ -124,6 +125,12 @@ func (gen *Tabajara) FillDependencies(name string) {
 	gen.Collector.DependencyUp.WithLabelValues(
 		name,
 	).Set(float64(h % 2))
+}
+
+func (gen *Tabajara) FillApplicationInfo(version string) {
+	gen.Collector.ApplicationInfo.WithLabelValues(
+		version,
+	).Set(1)
 }
 
 func (gen *Tabajara) getUris() []string {
