@@ -14,6 +14,8 @@ type Collector struct {
 	ResponseBytesCounter *prometheus.CounterVec
 
 	DependencyUp *prometheus.GaugeVec
+
+	ApplicationInfo *prometheus.GaugeVec
 }
 
 // Init properly initializes system metrics and registers them to the prometheus registry
@@ -24,9 +26,11 @@ func Init() *Collector {
 			RequestSecondsHistogram: getRequestSecondsHistogram(),
 			ResponseBytesCounter:    getResponseBytesCounter(),
 			DependencyUp:            getDependencyUp(),
+			ApplicationInfo:         getApplicationInfo(),
 		}
 
-		prometheus.MustRegister(instance.RequestSecondsHistogram, instance.ResponseBytesCounter, instance.DependencyUp)
+		prometheus.MustRegister(instance.RequestSecondsHistogram, instance.ResponseBytesCounter, instance.DependencyUp,
+			instance.ApplicationInfo)
 	}
 
 	logrus.Infof("Now collecting HTTP Requestes metrics!")
@@ -39,12 +43,12 @@ func getRequestSecondsHistogram() *prometheus.HistogramVec {
 		Help:    "HTTP requests count and latency histogram",
 		Buckets: []float64{0.1, 0.3, 2},
 	}, []string{
-		"type",    // request type (http, grpc, etc)
-		"status",  // response status
-		"method",  // method used to reach the endpoint
-		"addr",    // endpoint address
-		"isError", // flag indicating if the status means an error or not
-		"version", // app version
+		"type",         // request type (http, grpc, etc)
+		"status",       // response status
+		"method",       // method used to reach the endpoint
+		"addr",         // endpoint address
+		"isError",      // flag indicating if the status means an error or not
+		"errorMessage", // error message if status is an error
 	})
 }
 
@@ -53,12 +57,12 @@ func getResponseBytesCounter() *prometheus.CounterVec {
 		Name: "response_size_bytes",
 		Help: "Response size bytes gauge",
 	}, []string{
-		"type",    // request type (http, grpc, etc)
-		"status",  // response status
-		"method",  // method used to reach the endpoint
-		"addr",    // endpoint address
-		"isError", // flag indicating if the status means an error or not
-		"version", // app version
+		"type",         // request type (http, grpc, etc)
+		"status",       // response status
+		"method",       // method used to reach the endpoint
+		"addr",         // endpoint address
+		"isError",      // flag indicating if the status means an error or not
+		"errorMessage", // error message if status is an error
 	})
 }
 
@@ -68,5 +72,14 @@ func getDependencyUp() *prometheus.GaugeVec {
 		Help: "dependencies status",
 	}, []string{
 		"name",
+	})
+}
+
+func getApplicationInfo() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "application_info",
+		Help: "static information about the application",
+	}, []string{
+		"version",
 	})
 }
