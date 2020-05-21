@@ -83,3 +83,19 @@ func getApplicationInfo() *prometheus.GaugeVec {
 		"version",
 	})
 }
+
+func getDependencyRequestSecondsHistogram() *prometheus.HistogramVec {
+	return prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "dependency_request_seconds",
+		Help:    "Dependency requests count and latency histogram",
+		Buckets: []float64{0.1, 0.3, 2},
+	}, []string{
+		"name",         // name of the dependency
+		"type",         // request type (http, grpc, etc)
+		"status",       // response status
+		"method",       // method used to reach the endpoint
+		"addr",         // endpoint address
+		"isError",      // flag indicating if the status means an error or not
+		"errorMessage", // error message if status is an error
+	})
+}
