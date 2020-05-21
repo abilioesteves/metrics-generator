@@ -16,6 +16,8 @@ type Collector struct {
 	DependencyUp *prometheus.GaugeVec
 
 	ApplicationInfo *prometheus.GaugeVec
+
+	DependencyRequestSecondsHistogram *prometheus.HistogramVec
 }
 
 // Init properly initializes system metrics and registers them to the prometheus registry
@@ -23,14 +25,15 @@ func Init() *Collector {
 	logrus.Infof("Registering metrics collectors...")
 	if instance == nil {
 		instance = &Collector{
-			RequestSecondsHistogram: getRequestSecondsHistogram(),
-			ResponseBytesCounter:    getResponseBytesCounter(),
-			DependencyUp:            getDependencyUp(),
-			ApplicationInfo:         getApplicationInfo(),
+			RequestSecondsHistogram:           getRequestSecondsHistogram(),
+			ResponseBytesCounter:              getResponseBytesCounter(),
+			DependencyUp:                      getDependencyUp(),
+			ApplicationInfo:                   getApplicationInfo(),
+			DependencyRequestSecondsHistogram: getDependencyRequestSecondsHistogram(),
 		}
 
 		prometheus.MustRegister(instance.RequestSecondsHistogram, instance.ResponseBytesCounter, instance.DependencyUp,
-			instance.ApplicationInfo)
+			instance.ApplicationInfo, instance.DependencyRequestSecondsHistogram)
 	}
 
 	logrus.Infof("Now collecting HTTP Requestes metrics!")
