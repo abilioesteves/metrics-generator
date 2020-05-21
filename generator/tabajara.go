@@ -79,6 +79,7 @@ func (gen *Tabajara) FillMetrics() {
 	methods := []string{"POST", "GET", "DELETE", "PUT"}
 
 	uri := getRandomElemNormal(gen.getUris())
+	dependencyUri := getRandomElemNormal(gen.getDependencyUris())
 	name := getRandomElemNormal(gen.getServiceNames())
 	calls := int(gen.getValueAccident(accidenttypes.Calls, accidenttypes.DefaultNumberOfCalls, uri))
 
@@ -88,6 +89,7 @@ func (gen *Tabajara) FillMetrics() {
 		errorMessage := generateErrorMessage(gen.getErrorMessage(), isError)
 		gen.FillRequests(uri, method, status, errorMessage, isError)
 		gen.FillResponses(uri, method, status, errorMessage, isError)
+		gen.FillDependenciesRequests(name, dependencyUri, method, status, errorMessage, isError)
 	}
 
 	gen.FillDependencies(name)
@@ -133,8 +135,24 @@ func (gen *Tabajara) FillApplicationInfo(version string) {
 	).Set(1)
 }
 
+func (gen *Tabajara) FillDependenciesRequests(name, uri, method, status, errorMessage string, isError bool) {
+	gen.Collector.DependencyRequestSecondsHistogram.WithLabelValues(
+		name,
+		"http",
+		status,
+		method,
+		uri,
+		strconv.FormatBool(isError),
+		errorMessage,
+	).Observe(gen.getValueAccident(accidenttypes.Latency, getSampleRequestTime(uri), uri))
+}
+
 func (gen *Tabajara) getUris() []string {
 	return generateItems("/resource/test-", gen.Entropy.URICount)
+}
+
+func (gen *Tabajara) getDependencyUris() []string {
+	return generateItems("/dependency/test-", gen.Entropy.URICount)
 }
 
 func (gen *Tabajara) getServiceNames() []string {
